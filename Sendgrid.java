@@ -4,7 +4,6 @@ import java.net.HttpURLConnection;
 import java.util.*;
 import java.io.IOException;
 import java.util.Iterator;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.io.BufferedReader;
@@ -40,11 +39,6 @@ public class Sendgrid {
     public Sendgrid(String username, String password) {
         this.username = username;
         this.password = password;
-        try {
-            this.setCategory("google_sendgrid_java_lib");
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
     }
 
     /**
@@ -323,14 +317,10 @@ public class Sendgrid {
      *
      * @param  key_value_pairs   key/value pairs where the value is an array of values
      * @return                   the SendGrid object.
+     * @throws JSONException 
      */
-    public Sendgrid setSubstitutions(JSONObject key_value_pairs) {
-        try {
-            this.header_list.put("sub", key_value_pairs);
-        } catch (JSONException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+    public Sendgrid setSubstitutions(JSONObject key_value_pairs) throws JSONException {
+        this.header_list.put("sub", key_value_pairs);
 
         return this;
     }
@@ -392,14 +382,10 @@ public class Sendgrid {
      * setUniqueArguments - Set a list of unique arguments, to be used for tracking purposes
      *
      * @param key_value_pairs - list of unique arguments
+     * @throws JSONException 
      */
-    public Sendgrid setUniqueArguments(JSONObject key_value_pairs) {
-        try {
-            this.header_list.put("unique_args", key_value_pairs);
-        } catch (JSONException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+    public Sendgrid setUniqueArguments(JSONObject key_value_pairs) throws JSONException {
+        this.header_list.put("unique_args", key_value_pairs);
 
         return this;
     }
@@ -409,22 +395,13 @@ public class Sendgrid {
      *
      * @param key     the key
      * @param value   the value
+     * @throws JSONException 
      */
-    public Sendgrid addUniqueArgument(String key, String value) {
+    public Sendgrid addUniqueArgument(String key, String value) throws JSONException {
         if (false == this.header_list.has("unique_args")) {
-          try {
-              this.header_list.put("unique_args", new JSONObject());
-          } catch (JSONException e) {
-              // TODO Auto-generated catch block
-              e.printStackTrace();
-          }
+        	this.header_list.put("unique_args", new JSONObject());
         }
-        try {
-            ((JSONObject) this.header_list.get("unique_args")).put(key, value);
-        } catch (JSONException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+        ((JSONObject) this.header_list.get("unique_args")).put(key, value);
 
         return this;
     }
@@ -433,14 +410,10 @@ public class Sendgrid {
      * setFilterSettings - Set filter/app settings
      *
      * @param filter_settings - JSONObject of fiter settings
+     * @throws JSONException 
      */
-    public Sendgrid setFilterSettings(JSONObject filter_settings) {
-        try {
-            this.header_list.put("filters", filter_settings);
-        } catch (JSONException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+    public Sendgrid setFilterSettings(JSONObject filter_settings) throws JSONException {
+        this.header_list.put("filters", filter_settings);
 
         return this;
     }
@@ -506,17 +479,13 @@ public class Sendgrid {
      * @param  array   the array to convert
      * @param  token   the name of parameter
      * @return         a url part that can be concatenated to a url request
+     * @throws UnsupportedEncodingException 
      */
-    protected String _arrayToUrlPart(ArrayList<String> array, String token) {
+    protected String _arrayToUrlPart(ArrayList<String> array, String token) throws UnsupportedEncodingException {
         String string = "";
         for(int i = 0;i < array.size();i++)
         {
-            try {
-                string += "&" + token + "[]=" + URLEncoder.encode(array.get(i), "UTF-8");
-            } catch (UnsupportedEncodingException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
+            string += "&" + token + "[]=" + URLEncoder.encode(array.get(i), "UTF-8");
         }
 
         return string;
@@ -576,8 +545,9 @@ public class Sendgrid {
      * send - Send an email
      *
      * @throws JSONException
+     * @throws IOException 
      */
-    public void send() throws JSONException {
+    public void send() throws JSONException, IOException {
         send(new WarningListener() {
             public void warning(String w, Throwable t) {
                 serverResponse = w;
@@ -590,8 +560,9 @@ public class Sendgrid {
      *
      * @param w callback that will receive warnings
      * @throws JSONException
+     * @throws IOException 
      */
-    public void send(WarningListener w) throws JSONException {
+    public void send(WarningListener w) throws JSONException, IOException {
         Map<String,String> data = new HashMap<String, String>();
 
         data = this._prepMessageData();
@@ -602,11 +573,7 @@ public class Sendgrid {
             final String value = data.get(key);
             if (key.equals("to") && this.getTos().size() > 0) {
                 if (this._useHeaders() == true){
-                    try {
-                        requestParams.append("to=" + URLEncoder.encode(value, "UTF-8") + "&");
-                    } catch (UnsupportedEncodingException e) {
-                        e.printStackTrace();
-                    }
+                    requestParams.append("to=" + URLEncoder.encode(value, "UTF-8") + "&");
                 } else{
                     requestParams.append(this._arrayToUrlPart(this.getTos(), "to")+"&");
                 }
@@ -614,17 +581,9 @@ public class Sendgrid {
                 if (key.equals("toname") && this.getToNames().size() > 0) {
                     requestParams.append(this._arrayToUrlPart(this.getToNames(), "toname").substring(1)+"&");
                 } else {
-                    try {
-                        requestParams.append(URLEncoder.encode(key, "UTF-8"));
-                    } catch (UnsupportedEncodingException e) {
-                        w.warning("Unsupported Encoding Exception", e);
-                    }
+                    requestParams.append(URLEncoder.encode(key, "UTF-8"));
                     requestParams.append("=");
-                    try {
-                        requestParams.append(URLEncoder.encode(value, "UTF-8"));
-                    } catch (UnsupportedEncodingException e) {
-                        w.warning("Unsupported Encoding Exception", e);
-                    }
+                    requestParams.append(URLEncoder.encode(value, "UTF-8"));
                     requestParams.append("&");
                 }
             }
@@ -634,46 +593,40 @@ public class Sendgrid {
         if (this.getBccs().size() > 0){
             request += "?" +this._arrayToUrlPart(this.getBccs(), "bcc").substring(1);
         }
-        try {
-            URL url = new URL(request);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setDoOutput(true);
-            connection.setRequestMethod("POST");
+        URL url = new URL(request);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setDoOutput(true);
+        connection.setRequestMethod("POST");
 
-            OutputStreamWriter writer = new OutputStreamWriter(connection.getOutputStream());
-            writer.write(requestParams.toString());
-            // Get the response
-            writer.flush();
+        OutputStreamWriter writer = new OutputStreamWriter(connection.getOutputStream());
+        writer.write(requestParams.toString());
+        // Get the response
+        writer.flush();
 
-            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String line, response = "";
+        BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+        String line, response = "";
 
-            while ((line = reader.readLine()) != null) {
-                // Process line...
-                response += line;
-            }
-            reader.close();
-            writer.close();
+        while ((line = reader.readLine()) != null) {
+            // Process line...
+            response += line;
+        }
+        reader.close();
+        writer.close();
 
-            if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-                // OK
-                serverResponse = "success";
-            } else {
-                // Server returned HTTP error code.
-                JSONObject apiResponse = new JSONObject(response);
-                JSONArray errorsObj = (JSONArray) apiResponse.get("errors");
-                for (int i = 0; i < errorsObj.length(); i++) {
-                    if (i != 0) {
-                        serverResponse += ", ";
-                    }
-                    serverResponse += errorsObj.get(i);
+        if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+            // OK
+            serverResponse = "success";
+        } else {
+            // Server returned HTTP error code.
+            JSONObject apiResponse = new JSONObject(response);
+            JSONArray errorsObj = (JSONArray) apiResponse.get("errors");
+            for (int i = 0; i < errorsObj.length(); i++) {
+                if (i != 0) {
+                    serverResponse += ", ";
                 }
-                w.warning(serverResponse, null);
+                serverResponse += errorsObj.get(i);
             }
-        } catch (MalformedURLException e) {
-            w.warning("Malformed URL Exception", e);
-        } catch (IOException e) {
-            w.warning("IO Exception", e);
+            w.warning(serverResponse, null);
         }
     }
 
@@ -743,13 +696,13 @@ public class Sendgrid {
         StringBuilder sb = new StringBuilder();
         int len = input.length();
         for (int i = 0; i < len; i++) {
-          int code = Character.codePointAt(input, i);
-          if (code > 127) {
-            sb.append(String.format("\\u%x", code));
-          } else {
-            sb.append(String.format("%c", code));
-          }
+        	int code = Character.codePointAt(input, i);
+        	if (code > 127) {
+        		sb.append(String.format("\\u%x", code));
+        	} else {
+        		sb.append(String.format("%c", code));
+        	}
         }
         return sb.toString();
-      }
+    }
 }
